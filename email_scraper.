@@ -1,0 +1,35 @@
+import requests
+from bs4 import BeautifulSoup
+import re
+
+def extract_emails(url):
+    try:
+        print(f"[+] Chargement du site : {url}")
+        headers = {'User-Agent': 'Mozilla/5.0'}
+        response = requests.get(url, headers=headers, timeout=10)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        text = soup.get_text()
+        emails = re.findall(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", text)
+        emails = list(set(emails))
+        return emails
+    except Exception as e:
+        print(f"[!] Erreur : {e}")
+        return []
+
+if __name__ == "__main__":
+    urls = input("Entre les URL(s) séparées par une virgule : ")
+    all_emails = set()
+    for url in [u.strip() for u in urls.split(",")]:
+        emails = extract_emails(url)
+        all_emails.update(emails)
+
+    if all_emails:
+        print(f"\n[✓] {len(all_emails)} e-mails trouvés :\n")
+        for e in all_emails:
+            print("-", e)
+        with open("emails_result.txt", "w") as f:
+            for e in all_emails:
+                f.write(e + "\n")
+        print("\n[+] Résultats sauvegardés dans emails_result.txt")
+    else:
+        print("[!] Aucun e-mail trouvé.")
